@@ -1,0 +1,19 @@
+1 Create new project 
+//////////////////////
+IF IS INSTALLED GLOBALY  with composer
+
+//////////////////////
+laravel new example-app
+/////////////////////
+
+localy with composer
+
+/////////////////////
+composer create-project laravel/laravel (project name)
+/////////////
+2. start
+/////////////
+php artisan serve
+/////////////
+
+
