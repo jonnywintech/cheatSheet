@@ -80,18 +80,46 @@ php artisan make:model Post --migration
 php artisan make:model Child 
 php artisan migrate:status   status migracija 
 php artisan migrate:fresh   
-// izvrsava reset nad databazom i ponovu upisuje iste , (samo u slucaju nuzde
+//izvrsava reset nad databazom i ponovu upisuje iste , (samo u slucaju nuzde
 )
 ```
 
-komande istraziti
+Komande  u stranicama
 
-@extends
+@include  ---  deo stranice koji se prilkjucuje glavnom sadrzaju (navbar / footer)
 
-@yield
+```php
+ @include('partials.navbar')
+```
 
-@include
+@extends --- stranica koja nadogradjue gore pomenuti sadrzaj i prikljucuje ga stranici
 
-@section
+```php
+@extends('layouts.app')
+```
 
+@yield -- nalazi se u delu stranice gde su dinamicni podaci  i pozivaju se 
+
+sa @section u novoj stranici
+
+```php
+<title>@yield('title')</title>
+// onda ide druga stranica u kojoj je @include i onda -->
+```
+
+stranica na kojoj se poziva @yeld
+
+```php
+@section('title', 'Vivify Blog')
+//primer 2
+@section('content')
+<h1>Posts</h1>
+<ul>
+    @foreach($posts as $post)
+    <li>
+        <a href="/posts/{{$post->id}}">{{$post->title}}</a>
+    </li>
+    @endforeach
+</ul>
 @endsection
+```
