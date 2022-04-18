@@ -21,8 +21,8 @@ CREATE DATABASE   [database_name]       ;
 4. Napraviti novi fajl koji se koristi kao template za  mysql table
    
    ```bash
-   php artisan make:migration [ime_tabele]
-   // primer
+   php artisan make:migration [ime_tabele] ## create_user_table
+   ## primer
    php artisan make:migration create_books_table
    ```
 
@@ -35,6 +35,9 @@ CREATE DATABASE   [database_name]       ;
                $table->id();
                $table->string('title');
                $table->string('author');
+               $table->foreignId('user_id')
+               ->constrained()
+               ->onDelete('cascade');
                $table->timestamps();
            });
        }
@@ -49,6 +52,8 @@ CREATE DATABASE   [database_name]       ;
 6. Kada se popuni fajl sa odgovarajucim parametrima izvrsiti sledecu komandu da bi se tabela dodala u databazu
    
    ```bash
+   php artisan migrate:fresh ##brise sve tabele i ponovo ih postavlja
+   php artisan migrate:rollback #vraca tabele u predhodno stanje migracij
    php artisan migrate
    ```
 
@@ -61,6 +66,7 @@ A belezi u tabeli migration
 ```bash
 git clone https://github.com/drstvnvc/nk16-blog.git
 cd nk16-blog
+
 composer install
 cp .env.example .env
 php artisan key:generate
@@ -73,16 +79,70 @@ php artisan migrate
 php artisan serve
 ```
 
-### za Pravljenje php modela
+u .env fajlu u slucaju da se radi u produkciji promeniti APP_ENV= production
+
+u ovom slucaju daje upozorenje  u slucaju da slucajno ukucate komande koje 
+
+mogu da izbrisu databaze ili tabele i time obrisete podatke
+
+## za Pravljenje php modela i controlera
 
 ```bash
-php artisan make:model Post --migration
-php artisan make:model Child 
-php artisan migrate:status   status migracija 
-php artisan migrate:fresh   
-//izvrsava reset nad databazom i ponovu upisuje iste , (samo u slucaju nuzde
-)
+php artisan make:model Post #--migration
+php artisan make:controller [imeControlora] #pravi kontroler fajl !!
+
+php artisan migrate:status  #status migracija 
+php artisan migrate:fresh #izvrsava reset nad databazom 
+#i ponovu upisuje iste , (samo u slucaju nuzde)!!!
 ```
+
+Podesavanja u Controlleru app/Http/Controllers
+
+```php
+namespace App\Http\Controllers;
+use App\Models\Post; // ime Post zavisi od projekta do projekta i moze se menjati
+use Illuminate\Http\Request;
+class PostController extends Controller
+{
+    public function index()
+    {
+        $posts = Post::where('is_published', true)->get();
+        return view('posts', compact('posts')); // [ 'posts' => $posts]
+    }
+    public function show($id)
+    {
+        // $post = Post::where('id', $id)->first();
+        $post = Post::findOrFail($id);
+        return view('post', compact('post')); // [ 'post' => $post]
+    }
+}
+```
+
+Ove dve funkcije se posle toga pozivaju u routes/web.php
+
+```php
+use App\Http\Controllers\PostController;
+use Illuminate\Support\Facades\Route;
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
+*/
+Route::get('/posts', [PostController::class, 'index']);
+Route::get('/posts/{id}', [PostController::class, 'show']);
+```
+
+Pravljenje  stranice iz delova tako da sadrzaj bude dinamican i nema previse ponavljanja  u folderu  /resources/views prave se dva foldera  'layouts' i 'partials'
+
+U layoutu se nalazi glavna sekcija webstranice head i   telo koje sadrzi 'partials'
+
+U partials se nalaze delovi stranice koji male sekcije koje se  @include u layouts
+
+i uglavnom su header(navbar) i footer
 
 Komande  u stranicama
 
@@ -92,7 +152,7 @@ Komande  u stranicama
  @include('partials.navbar')
 ```
 
-@extends --- stranica koja nadogradjue gore pomenuti sadrzaj i prikljucuje ga stranici
+@extends ---  iskoristi  napravljeni template  (header/footer)
 
 ```php
 @extends('layouts.app')
@@ -122,4 +182,45 @@ stranica na kojoj se poziva @yeld
     @endforeach
 </ul>
 @endsection
+```
+
+Veze izmedju Tabela
+
+1. hasone
+
+2. hasMany
+
+3. belongsTo
+
+4. belongsToMany
+
+ovo se izgugla ili istrazi eloquent relationship u laravel dokumentaciji
+
+#### Relacija se pravi u Model folderu i pise se ovako
+
+```php
+public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+```
+
+ovo je  u  modelu igrac 
+
+dalje se pise u kontroleru 
+
+```php
+ public function show($id)
+  {
+      $team = Teams::with('players')->findOrFail($id);//::with je relacija
+ //izmedju databaza i smesta se u team variablu koja se prosledjue u view
+    //   dd($team);
+      return view('pages.team', compact('team'));
+  }
+```
+
+random copy
+
+```bash
+
 ```
